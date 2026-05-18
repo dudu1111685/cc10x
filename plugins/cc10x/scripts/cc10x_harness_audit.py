@@ -360,6 +360,33 @@ def main() -> int:
         errors.append("hooks.json does not support Codex PLUGIN_ROOT")
     if "CLAUDE_PLUGIN_ROOT" not in hook_commands:
         errors.append("hooks.json no longer preserves Claude plugin-root compatibility")
+    codex_supported_hook_events = {
+        "PreToolUse",
+        "PostToolUse",
+        "PreCompact",
+        "PostCompact",
+        "SessionStart",
+        "Stop",
+    }
+    claude_native_hook_events = {
+        "TaskCompleted",
+        "SubagentStop",
+        "StopFailure",
+        "InstructionsLoaded",
+    }
+    hook_events = set(hooks.get("hooks", {}).keys())
+    missing_codex_hooks = codex_supported_hook_events - hook_events
+    missing_claude_hooks = claude_native_hook_events - hook_events
+    if missing_codex_hooks:
+        errors.append(
+            "hooks.json missing Codex-supported hook events: "
+            + ", ".join(sorted(missing_codex_hooks))
+        )
+    if missing_claude_hooks:
+        errors.append(
+            "hooks.json missing Claude-native compatibility hook events: "
+            + ", ".join(sorted(missing_claude_hooks))
+        )
 
     for agent_name in (
         "bug-investigator",
@@ -481,6 +508,7 @@ def main() -> int:
         ".codex-plugin/plugin.json",
         ".agents/plugins/marketplace.json",
         "The Codex package is additive",
+        "Codex currently recognizes `PreToolUse`, `PostToolUse`, `PreCompact`, `PostCompact`, `SessionStart`, and `Stop`",
     ):
         if phrase not in readme:
             errors.append(f"README missing Codex compatibility phrase: {phrase}")

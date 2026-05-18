@@ -240,6 +240,8 @@ cc10x is intentionally dual packaged:
 
 Codex currently documents plugin support for manifests, bundled skills, hooks, MCP server config, apps, and assets. It does not document a Claude-style `agents/` manifest field, so the Codex package preserves agents as skills rather than deleting or rewriting the Claude Code agent files.
 
+Codex recognizes the shared hook file for its supported lifecycle events: `PreToolUse`, `PostToolUse`, `PreCompact`, `PostCompact`, `SessionStart`, and `Stop`. Claude Code continues to use the additional Claude-native events: `TaskCompleted`, `SubagentStop`, `StopFailure`, and `InstructionsLoaded`.
+
 ### Debugging a Codex install
 
 Useful Codex CLI slash commands:
@@ -580,6 +582,8 @@ The plugin currently ships these Claude Code-native hooks:
 | `InstructionsLoaded` | Audit instruction-file loading asynchronously |
 
 These hooks are intentionally minimal. They improve reliability without turning the plugin into a second runtime.
+
+In Codex, the same hook file is loaded through `.codex-plugin/plugin.json`. Codex currently recognizes `PreToolUse`, `PostToolUse`, `PreCompact`, `PostCompact`, `SessionStart`, and `Stop`; the remaining Claude-native hook events stay in the file for Claude Code compatibility.
 
 ---
 

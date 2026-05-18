@@ -70,6 +70,7 @@
 7. Codex debug docs - documented `/plugins`, `/skills`, `/hooks`, `/debug-config`, `log_dir`, and CC10x runtime artifact locations.
 8. GitHub publication - created fork `dudu1111685/cc10x`, committed the compatibility layer, and pushed to fork `main`.
 9. Verification - ran JSON validation, harness audit, replay check, and latency fixture audit.
+10. Live Codex verification - added the fork as a Codex marketplace, installed `cc10x@cc10x-local`, and verified plugin/read, skills/list, and hooks/list through `codex app-server`.
 
 ### Decision Points Encountered
 
@@ -78,6 +79,7 @@
 | Represent Claude agents in Codex | Add undocumented manifest field, delete agents, or expose wrappers as skills | Expose wrappers as skills | Matches documented Codex plugin surfaces and preserves Claude Code agents. |
 | Hook environment variable | Replace `CLAUDE_PLUGIN_ROOT` or add fallback | Add `PLUGIN_ROOT` with `CLAUDE_PLUGIN_ROOT` fallback | Keeps both runtimes working. |
 | Marketplace scope | Personal marketplace or repo-local marketplace | Repo-local `.agents/plugins/marketplace.json` | Matches repository distribution/testing workflow. |
+| Hook event support | Remove Claude-native events or preserve all events | Preserve all events and document the Codex-supported subset | Codex recognizes `PreToolUse`, `PostToolUse`, `PreCompact`, `PostCompact`, `SessionStart`, and `Stop`; Claude Code keeps the additional native events. |
 
 ### Verification Commands
 
@@ -88,6 +90,8 @@ python3 -m json.tool plugins/cc10x/hooks/hooks.json
 python3 plugins/cc10x/scripts/cc10x_harness_audit.py
 python3 plugins/cc10x/scripts/cc10x_workflow_replay_check.py
 python3 plugins/cc10x/scripts/cc10x_latency_audit.py --fixtures
+codex plugin marketplace add dudu1111685/cc10x
+codex app-server --enable plugin_hooks
 ```
 
 ### Outputs Produced
@@ -96,7 +100,7 @@ python3 plugins/cc10x/scripts/cc10x_latency_audit.py --fixtures
 - `plugins/cc10x/skills/{agent-name}/SKILL.md` wrappers for 9 Claude Code agents
 - Updated audit coverage for dual packaging
 - Updated README/changelog
-- Fork pushed to `https://github.com/dudu1111685/cc10x` at commit `8d60240`.
+- Fork pushed to `https://github.com/dudu1111685/cc10x`.
 
 ## Skill Potential Assessment
 
