@@ -1,0 +1,48 @@
+{
+  "name": "cc10x",
+  "version": "10.1.20",
+  "description": "Codex plugin for CC10x router-first build/debug/review/plan workflows, bundled specialist workflow skills, lifecycle hooks, durable workflow memory, and verification-focused development discipline.",
+  "author": {
+    "name": "Rom Iluz",
+    "email": "rom@iluz.net",
+    "url": "https://github.com/romiluz13"
+  },
+  "homepage": "https://github.com/romiluz13/cc10x",
+  "repository": "https://github.com/romiluz13/cc10x",
+  "license": "MIT",
+  "keywords": [
+    "workflow-routing",
+    "code-review",
+    "tdd",
+    "debugging",
+    "planning",
+    "architecture",
+    "frontend",
+    "verification",
+    "codex",
+    "codex-plugin",
+    "claude-code-compatibility"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "CC10x",
+    "shortDescription": "Router-first workflow orchestration for Codex.",
+    "longDescription": "CC10x packages router-led build, debug, review, and planning workflows with specialist workflow skills, durable .cc10x memory, lifecycle hooks, and verification-before-completion discipline. This Codex package preserves the Claude Code plugin content while exposing Codex-supported plugin surfaces.",
+    "developerName": "Rom Iluz",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/romiluz13/cc10x",
+    "brandColor": "#F97316",
+    "composerIcon": "./assets/logo.png",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Use CC10x to implement this change with router-first build, review, and verification.",
+      "Use CC10x to debug this failure end-to-end.",
+      "Use CC10x to review this branch for correctness, security, and missing proof."
+    ]
+  }
+}

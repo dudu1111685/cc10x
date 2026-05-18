@@ -14,6 +14,30 @@ description: |
 
 **Runtime contract only.** v10 restores trust-first orchestration: route intent, hydrate workflow state, write workflow artifacts, execute the task graph, validate agent output, and fail closed on ambiguity, skipped work, or missing persistence.
 
+## 0. Codex Runtime Adapter
+
+This package may run in Codex as a plugin. Codex loads CC10x specialist roles as bundled skills under `skills/<role>/SKILL.md`; Claude Code loads the original role files under `agents/*.md`.
+
+When a Claude Code-specific task primitive is unavailable, preserve the same routing contract with Codex-native surfaces:
+
+| Claude Code concept | Codex-compatible behavior |
+|---------------------|---------------------------|
+| `Agent(component-builder)` | Invoke `cc10x:component-builder` as the active specialist role for the current phase. |
+| `Agent(bug-investigator)` | Invoke `cc10x:bug-investigator`. |
+| `Agent(code-reviewer)` | Invoke `cc10x:code-reviewer`. |
+| `Agent(silent-failure-hunter)` | Invoke `cc10x:silent-failure-hunter`. |
+| `Agent(integration-verifier)` | Invoke `cc10x:integration-verifier`. |
+| `Agent(planner)` | Invoke `cc10x:planner`. |
+| `Agent(plan-gap-reviewer)` | Invoke `cc10x:plan-gap-reviewer`. |
+| `Agent(web-researcher)` | Invoke `cc10x:web-researcher`. |
+| `Agent(github-researcher)` | Invoke `cc10x:github-researcher`. |
+| `TaskCreate` / `TaskUpdate` / `TaskList` / `TaskGet` | Track the same workflow graph in `.cc10x/v10/workflows/{workflow_uuid}.json`, `.events.jsonl`, and the visible Codex task plan when available. |
+
+Codex execution rule:
+- If Codex subagents are explicitly available and allowed by the active session instructions, run independent read-only roles in parallel only when their write surfaces do not overlap.
+- If subagents are unavailable or disallowed, execute the specialist role inline by loading the matching bundled skill and preserving the same Router Contract output expectations.
+- Do not drop a workflow gate merely because a Claude Code task primitive is missing. Persist the gate in the workflow artifact and stop with a clear blocker when the next step cannot be represented safely.
+
 ## 1. Intent Routing
 
 Route using the first matching signal:

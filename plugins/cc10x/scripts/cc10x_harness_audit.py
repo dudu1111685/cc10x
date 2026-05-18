@@ -19,7 +19,9 @@ ROUTER_REMEDIATION_REFERENCE = ROUTER_REFERENCES_DIR / "remediation-and-research
 README = ROOT / "README.md"
 CHANGELOG = ROOT / "CHANGELOG.md"
 PLUGIN_JSON = PLUGIN_ROOT / ".claude-plugin" / "plugin.json"
+CODEX_PLUGIN_JSON = PLUGIN_ROOT / ".codex-plugin" / "plugin.json"
 MARKETPLACE_JSON = ROOT / ".claude-plugin" / "marketplace.json"
+CODEX_MARKETPLACE_JSON = ROOT / ".agents" / "plugins" / "marketplace.json"
 HOOKS_JSON = PLUGIN_ROOT / "hooks" / "hooks.json"
 TASK_COMPLETED_GUARD = PLUGIN_ROOT / "scripts" / "cc10x_task_completed_guard.py"
 INVARIANTS = ROOT / "docs" / "router-invariants.md"
@@ -223,9 +225,17 @@ def main() -> int:
     errors: list[str] = []
 
     plugin = json.loads(read(PLUGIN_JSON))
+    codex_plugin = (
+        json.loads(read(CODEX_PLUGIN_JSON)) if CODEX_PLUGIN_JSON.exists() else {}
+    )
     hooks = json.loads(read(HOOKS_JSON))
     marketplace = (
         json.loads(read(MARKETPLACE_JSON)) if MARKETPLACE_JSON.exists() else {}
+    )
+    codex_marketplace = (
+        json.loads(read(CODEX_MARKETPLACE_JSON))
+        if CODEX_MARKETPLACE_JSON.exists()
+        else {}
     )
     router = read(ROUTER)
     router_artifact_policy_reference = read(ROUTER_ARTIFACT_POLICY_REFERENCE)
@@ -263,6 +273,46 @@ def main() -> int:
     latency_reduction_note = read(LATENCY_REDUCTION_NOTE)
 
     version = plugin.get("version")
+    if not CODEX_PLUGIN_JSON.exists():
+        errors.append("missing Codex plugin manifest .codex-plugin/plugin.json")
+    if not CODEX_MARKETPLACE_JSON.exists():
+        errors.append("missing Codex local marketplace .agents/plugins/marketplace.json")
+    if codex_plugin:
+        if codex_plugin.get("name") != plugin.get("name"):
+            errors.append("Codex plugin name does not match Claude plugin name")
+        if codex_plugin.get("version") != version:
+            errors.append(
+                f"Codex plugin version ({codex_plugin.get('version')}) does not match Claude plugin version ({version})"
+            )
+        if codex_plugin.get("skills") != "./skills/":
+            errors.append("Codex plugin manifest must expose bundled skills at ./skills/")
+        if codex_plugin.get("hooks") != "./hooks/hooks.json":
+            errors.append("Codex plugin manifest must expose bundled hooks at ./hooks/hooks.json")
+        interface = codex_plugin.get("interface") or {}
+        if interface.get("displayName") != "CC10x":
+            errors.append("Codex plugin interface.displayName should be CC10x")
+    if codex_marketplace:
+        plugins = codex_marketplace.get("plugins") or []
+        if not plugins:
+            errors.append("Codex marketplace has no plugins entries")
+        else:
+            entry = plugins[0]
+            if entry.get("name") != "cc10x":
+                errors.append("Codex marketplace first plugin is not cc10x")
+            source = entry.get("source") or {}
+            if source.get("source") != "local":
+                errors.append("Codex marketplace cc10x source must be local")
+            if source.get("path") != "./plugins/cc10x":
+                errors.append(
+                    f"Codex marketplace source.path changed unexpectedly ({source.get('path')})"
+                )
+            policy = entry.get("policy") or {}
+            if policy.get("installation") != "AVAILABLE":
+                errors.append("Codex marketplace policy.installation must be AVAILABLE")
+            if policy.get("authentication") != "ON_INSTALL":
+                errors.append("Codex marketplace policy.authentication must be ON_INSTALL")
+            if entry.get("category") != "Productivity":
+                errors.append("Codex marketplace category must be Productivity")
     if f"**Current version:** {version}" not in readme:
         errors.append(
             f"README.md current version does not match plugin.json ({version})"
@@ -306,6 +356,36 @@ def main() -> int:
             errors.append(f"hooks.json does not reference {script}")
         if not (PLUGIN_ROOT / "scripts" / script).exists():
             errors.append(f"missing plugin hook script {script}")
+    if "PLUGIN_ROOT" not in hook_commands:
+        errors.append("hooks.json does not support Codex PLUGIN_ROOT")
+    if "CLAUDE_PLUGIN_ROOT" not in hook_commands:
+        errors.append("hooks.json no longer preserves Claude plugin-root compatibility")
+
+    for agent_name in (
+        "bug-investigator",
+        "code-reviewer",
+        "component-builder",
+        "github-researcher",
+        "integration-verifier",
+        "plan-gap-reviewer",
+        "planner",
+        "silent-failure-hunter",
+        "web-researcher",
+    ):
+        agent_path = PLUGIN_ROOT / "agents" / f"{agent_name}.md"
+        codex_skill_path = PLUGIN_ROOT / "skills" / agent_name / "SKILL.md"
+        if not agent_path.exists():
+            errors.append(f"missing Claude Code agent {agent_name}.md")
+        if not codex_skill_path.exists():
+            errors.append(f"missing Codex skill wrapper for agent {agent_name}")
+        else:
+            skill_text = read(codex_skill_path)
+            if f"name: {agent_name}" not in skill_text:
+                errors.append(f"Codex skill wrapper for {agent_name} has wrong name")
+            if "Codex-compatible form of the original Claude Code" not in skill_text:
+                errors.append(
+                    f"Codex skill wrapper for {agent_name} missing compatibility note"
+                )
 
     if not REPLAY_CHECK.exists():
         errors.append("missing workflow replay checker script")
@@ -396,6 +476,14 @@ def main() -> int:
 
     if ".cc10x/v10/" not in readme:
         errors.append("README does not document the live v10 memory namespace")
+    for phrase in (
+        "## Codex Compatibility",
+        ".codex-plugin/plugin.json",
+        ".agents/plugins/marketplace.json",
+        "The Codex package is additive",
+    ):
+        if phrase not in readme:
+            errors.append(f"README missing Codex compatibility phrase: {phrase}")
     for stale in (
         "live in `.cc10x/`",
         "MEMORY (.cc10x/)",

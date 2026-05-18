@@ -6,7 +6,7 @@
   },
   "healthcheck": {
     "name": "CC10X plugin files are present",
-    "command": "python3 -c \"from pathlib import Path; import sys; path = Path('plugins/cc10x/.claude-plugin/plugin.json'); ok = path.exists(); print('ok' if ok else 'missing'); sys.exit(0 if ok else 1)\"",
+    "command": "python3 -c \"from pathlib import Path; import sys; paths = [Path('plugins/cc10x/.claude-plugin/plugin.json'), Path('plugins/cc10x/.codex-plugin/plugin.json'), Path('.agents/plugins/marketplace.json')]; missing = [str(p) for p in paths if not p.exists()]; print('ok' if not missing else 'missing ' + ','.join(missing)); sys.exit(0 if not missing else 1)\"",
     "expected": "Prints ok"
   },
   "scenarios": [

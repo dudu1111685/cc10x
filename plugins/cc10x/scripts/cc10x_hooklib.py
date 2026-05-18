@@ -10,14 +10,14 @@ STATE_VERSION = "v10"
 
 
 def project_dir() -> Path:
-    value = os.environ.get("CLAUDE_PROJECT_DIR")
+    value = os.environ.get("CODEX_PROJECT_DIR") or os.environ.get("CLAUDE_PROJECT_DIR")
     if value:
         return Path(value)
     return Path.cwd()
 
 
 def plugin_root() -> Path:
-    value = os.environ.get("CLAUDE_PLUGIN_ROOT")
+    value = os.environ.get("PLUGIN_ROOT") or os.environ.get("CLAUDE_PLUGIN_ROOT")
     if value:
         return Path(value)
     return Path(__file__).resolve().parents[1]

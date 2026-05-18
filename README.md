@@ -5,11 +5,11 @@
 <h1 align="center">cc10x</h1>
 
 <p align="center">
-  <em>The Claude Code harness you install when you're done babysitting.</em>
+  <em>The Claude Code and Codex harness you install when you're done babysitting.</em>
 </p>
 
 <p align="center">
-  <strong>1 router</strong> &nbsp;·&nbsp; <strong>9 specialist agents</strong> &nbsp;·&nbsp; <strong>13 skills</strong> &nbsp;·&nbsp; <strong>4 workflows</strong>
+  <strong>1 router</strong> &nbsp;·&nbsp; <strong>9 specialist agents</strong> &nbsp;·&nbsp; <strong>13 core skills</strong> &nbsp;·&nbsp; <strong>9 Codex role wrappers</strong> &nbsp;·&nbsp; <strong>4 workflows</strong>
 </p>
 
 <p align="center">
@@ -22,12 +22,25 @@
 
 ## Install
 
+### Claude Code
+
 ```bash
 /plugin marketplace add romiluz13/cc10x
 /plugin install cc10x@romiluz13
 ```
 
 Then say **"set up cc10x for me"** in Claude Code and restart. Done.
+
+### Codex
+
+The repository also ships a Codex plugin manifest and repo-local marketplace:
+
+```text
+plugins/cc10x/.codex-plugin/plugin.json
+.agents/plugins/marketplace.json
+```
+
+For local Codex testing, open this repository in Codex, restart Codex after the marketplace file is present, then install `cc10x` from the `CC10x Local` marketplace. The Codex package is additive: it does not replace the Claude Code plugin metadata, agents, or marketplace.
 
 ---
 
@@ -215,6 +228,49 @@ If not, the plugin still works. Research falls back to built-in Claude Code tool
 ```
 
 ---
+
+## Codex Compatibility
+
+cc10x is intentionally dual packaged:
+
+- Claude Code continues to load `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and the original `agents/*.md` specialist agents.
+- Codex loads `.codex-plugin/plugin.json`, `.agents/plugins/marketplace.json`, and the bundled `skills/` directory.
+- The 9 Claude Code specialist agents are also exposed as Codex skill wrappers under `plugins/cc10x/skills/<agent-name>/SKILL.md`.
+- Shared hooks use `PLUGIN_ROOT` in Codex and fall back to `CLAUDE_PLUGIN_ROOT` for Claude Code compatibility.
+
+Codex currently documents plugin support for manifests, bundled skills, hooks, MCP server config, apps, and assets. It does not document a Claude-style `agents/` manifest field, so the Codex package preserves agents as skills rather than deleting or rewriting the Claude Code agent files.
+
+### Debugging a Codex install
+
+Useful Codex CLI slash commands:
+
+- `/plugins` — confirm the `cc10x` plugin is installed and enabled.
+- `/skills` — confirm bundled skills such as `cc10x:cc10x-router` are visible.
+- `/hooks` — inspect loaded lifecycle hooks, trust changed hooks, or disable hooks while testing.
+- `/debug-config` — print config layer and policy diagnostics.
+- `/status` — inspect the active model, approval policy, sandbox, and session state.
+- `/feedback` — send Codex logs/diagnostics to OpenAI maintainers if the issue is in Codex itself.
+
+Codex plugin hooks are off by default unless enabled in Codex config:
+
+```toml
+[features]
+plugin_hooks = true
+```
+
+Codex logs are controlled by `log_dir` in `~/.codex/config.toml`; when unset, Codex writes logs under `$CODEX_HOME/log` (commonly `~/.codex/log`). For CC10x-specific runtime state and hook traces, check:
+
+```text
+.cc10x/v10/workflows/*.json
+.cc10x/v10/workflows/*.events.jsonl
+.cc10x/v10/cc10x-hook-events.log
+```
+
+If Codex cannot see the local marketplace, restart Codex after verifying this file exists at the repository root:
+
+```text
+.agents/plugins/marketplace.json
+```
 
 ## Claude Setup Instructions
 
@@ -665,6 +721,8 @@ I'll help you build a task tracker! Let me start...
 plugins/cc10x/
 ├── .claude-plugin/
 │   └── plugin.json
+├── .codex-plugin/
+│   └── plugin.json
 ├── hooks/
 │   └── hooks.json
 ├── scripts/
@@ -688,6 +746,15 @@ plugins/cc10x/
 │   └── github-researcher.md
 │
 └── skills/
+    ├── bug-investigator/SKILL.md              # Codex wrapper for agents/bug-investigator.md
+    ├── code-reviewer/SKILL.md                 # Codex wrapper for agents/code-reviewer.md
+    ├── component-builder/SKILL.md             # Codex wrapper for agents/component-builder.md
+    ├── github-researcher/SKILL.md             # Codex wrapper for agents/github-researcher.md
+    ├── integration-verifier/SKILL.md          # Codex wrapper for agents/integration-verifier.md
+    ├── plan-gap-reviewer/SKILL.md             # Codex wrapper for agents/plan-gap-reviewer.md
+    ├── planner/SKILL.md                       # Codex wrapper for agents/planner.md
+    ├── silent-failure-hunter/SKILL.md         # Codex wrapper for agents/silent-failure-hunter.md
+    ├── web-researcher/SKILL.md                # Codex wrapper for agents/web-researcher.md
     ├── cc10x-router/
     │   ├── SKILL.md
     │   └── references/

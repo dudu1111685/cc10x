@@ -2,6 +2,15 @@
 
 ## [10.1.20] - 2026-05-06
 
+### Codex compatibility layer
+
+Added an additive Codex plugin package alongside the existing Claude Code package.
+The Claude Code `.claude-plugin` manifest, marketplace, and `agents/*.md` files
+remain intact. Codex now gets `.codex-plugin/plugin.json`, a repo-local
+`.agents/plugins/marketplace.json`, and skill wrappers for the 9 specialist
+agents because Codex plugin manifests do not document a Claude-style `agents`
+component field.
+
 ### Escape the Claude Code sensitive-file gate
 
 Moved the workflow state root from `.claude/cc10x/v10/` to `.cc10x/v10/`

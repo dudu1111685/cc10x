@@ -1,0 +1,20 @@
+{
+  "name": "cc10x-local",
+  "interface": {
+    "displayName": "CC10x Local"
+  },
+  "plugins": [
+    {
+      "name": "cc10x",
+      "source": {
+        "source": "local",
+        "path": "./plugins/cc10x"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
